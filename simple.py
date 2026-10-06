@@ -36,26 +36,27 @@ kafka_prepared_df = df.select(
     col("id").cast("string").alias("key"),
     
     # 2. ALL columns (A, B, C) packed into a JSON string as the Kafka VALUE
-    to_json(struct("*")).alias("value")
+    to_json(struct("*")).alias("value"),
+    struct("*").alias('value1')
 )
 
-print(kafka_prepared_df.dtypes) # [('key', 'string'), ('value', 'string')]
+print(kafka_prepared_df.dtypes) # [('key', 'string'), ('value', 'string'), ('value1', 'struct<id:bigint,Name:string,salary:bigint>')]
 
 kafka_prepared_df.show(truncate = False)
-# +---+--------------------------------------+
-# |key|value                                 |
-# +---+--------------------------------------+
-# |101|{"id":101,"Name":"Gaurav","salary":20}|
-# |102|{"id":102,"Name":"Anima","salary":30} |
-# |103|{"id":103,"Name":"Ashish","salary":40}|
-# |104|{"id":104,"Name":"Tushar","salary":50}|
-# |105|{"id":105,"Name":"Aditya","salary":60}|
-# +---+--------------------------------------+
+# +---+--------------------------------------+-----------------+
+# |key|value                                 |value1           |
+# +---+--------------------------------------+-----------------+
+# |101|{"id":101,"Name":"Gaurav","salary":20}|{101, Gaurav, 20}|
+# |102|{"id":102,"Name":"Anima","salary":30} |{102, Anima, 30} |
+# |103|{"id":103,"Name":"Ashish","salary":40}|{103, Ashish, 40}|
+# |104|{"id":104,"Name":"Tushar","salary":50}|{104, Tushar, 50}|
+# |105|{"id":105,"Name":"Aditya","salary":60}|{105, Aditya, 60}|
+# +---+--------------------------------------+-----------------+
 
 print(kafka_prepared_df.head(2))
-# [Row(key='101', value='{"id":101,"Name":"Gaurav","salary":20}'), Row(key='102', value='{"id":102,"Name":"Anima","salary":30}')]
+# [Row(key='101', value='{"id":101,"Name":"Gaurav","salary":20}', value1=Row(id=101, Name='Gaurav', salary=20)), Row(key='102', value='{"id":102,"Name":"Anima","salary":30}', value1=Row(id=102, Name='Anima', salary=30))]
 
-print(kafka_prepared_df.head(20)[1]) # Row(key='102', value='{"id":102,"Name":"Anima","salary":30}')
+print(kafka_prepared_df.head(20)[1]) # Row(key='102', value='{"id":102,"Name":"Anima","salary":30}', value1=Row(id=102, Name='Anima', salary=30))
 print(kafka_prepared_df.head(20)[1][1]) # {"id":102,"Name":"Anima","salary":30}
 
 # Write to Kafka Topic
