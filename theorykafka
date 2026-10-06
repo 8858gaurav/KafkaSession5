@@ -46,6 +46,12 @@ def acked(err, msg):
         print(f"Msg produced to topic '{msg.topic()}' [Partition {msg.partition()}] at Offset {msg.offset()}")
         print(f"Key: {key_str} | Value: {val_str}")
 
+The Broker Sends: The broker sends a response packet containing topic name, partition, offset, timestamp, and any error code.
+confluent_kafka Receives: The underlying confluent_kafka background thread catches this TCP packet and builds two Python objects in memory:
+err: Set to None if successful, or a KafkaError object if delivery failed.
+msg: A Message object packed with all the metadata sent back by the broker (topic(), partition(), offset(), key(), value()).
+producer.poll() Fires: When your code executes producer.poll(0) or producer.flush(), confluent_kafka takes those automatically constructed err and msg objects and passes them directly into your acked(err, msg) function:
+
 # 3. Reading source file and producing
 with open('/Volumes/misgaurav_databrciks_ws/default/misgaurav_v/retail_data/orders_data/orders_input.json', mode='r') as files:
     for line in files:
